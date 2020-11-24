@@ -24,10 +24,16 @@
         <header class="bg-white shadow" v-if="$route.meta.title">
       <div class="max-w-screen-xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <h3 class="text-2xl font-bold leading-tight text-gray-900" v-if="week.champion">
-          🏆 Manager of the Week: {{ week.champion.mgr_name }} ({{week.champion.live_points}} points)
+          🏆 Manager of the Week: <i> {{ week.champion.mgr_name }} ({{week.champion.live_points}} points) </i>
         </h3>
         <h3 class="text-2xl font-bold leading-tight text-gray-900" v-if="week.flop">
-          🐔 Flop of the Week: {{ week.flop.mgr_name }} ({{ week.flop.live_points }} Point)
+          🐔 Flop of the Week: <i>{{ week.flop.mgr_name }} ({{ week.flop.live_points }} Point)</i>
+        </h3>
+        <h3 class="text-2xl font-bold leading-tight text-gray-900" v-if="week.flop">
+        🧠 Mastermind of the Week: <i>{{ mastermind[0].name }} (Transfer points: {{ mastermind[0].net_transfer_points }} Point, Transfers: {{ mastermind[0].transfers}})</i>
+        </h3>
+        <h3 class="text-2xl font-bold leading-tight text-gray-900" v-if="week.flop">
+        🤖 Overthinker of the Week: <i>{{ mastermind[mastermind.length - 1].name }} (Transfer points: {{ mastermind[mastermind.length -1].net_transfer_points }} Point, Transfers: {{ mastermind[mastermind.length - 1].transfers}})</i>
         </h3>
       </div>
     </header>
@@ -82,7 +88,7 @@
         <tbody>
           <tr class="" v-for="manager in managers" :key="manager.entry">
             <td class="border-2 border-gray-200 p-1">{{ manager.name }}</td>
-            <td class="border-2 border-gray-200 p-1">{{  manager.captain.display_name }}</td>
+            <td class="border-2 border-gray-200 p-1">{{  manager.captain.display_name }}</td>0
             <td class="border-2 border-gray-200 p-1">{{ getCaptainScore(manager.captain) }} Point</td>
           </tr>
         </tbody>
@@ -104,12 +110,14 @@ export default defineComponent({
   mounted() {
     this.loading = true;
 
-
+      console.log(apiData);
         this.$data.players = apiData.player_data;
 
         this.$data.managers = apiData.managers.map(manager => ({
           captain: this.getCaptain(manager),
           name: manager.mgr_name,
+          net_transfer_points: manager.gw_net_transfer_points,
+          transfers: manager.gw_transfers,
           gw_points: manager.gw_points,
           live_points: manager.live_points,
           gw_transfers_cost: manager.gw_transfers_cost,
@@ -122,13 +130,17 @@ export default defineComponent({
         this.$data.week =  {
           champion: sortedManager[0],
           flop: sortedManager[sortedManager.length-1] 
-        }
+        }        
         this.loading=false;
   },
   computed: {
     topPoint() {
       // return 200;
       return this.managers.sort((a,b) => (a.live_overall_points>b.live_overall_points))[0].live_overall_points
+    },
+    mastermind() {
+      console.log(this.managers.sort((a,b) => (b.net_transfer_points - a.net_transfer_points))[0]);
+      return this.managers.sort((a,b) => (b.net_transfer_points - a.net_transfer_points));
     }
   },
   data: () => ({
