@@ -59,7 +59,7 @@
           </thead>
         <tbody>
           <tr class="" v-for="manager in sortedManagers" :key="manager.entry">
-            <td class="border-2 border-gray-200 p-1">{{ manager.name }}</td>
+            <td class="border-2 border-gray-200 p-1">{{ manager.mgr_name }}</td>
             <td class="border-2 border-gray-200 p-1">{{  manager.live_overall_points }}</td>
             <td class="border-2 border-gray-200 p-1">{{ manager.gw_points - manager.gw_transfers_cost }}</td>
             <td class="border-2 border-gray-200 p-1">{{  topPoint - manager.live_overall_points }}</td>
@@ -110,6 +110,7 @@ export default defineComponent({
     this.loading = true;
 
         this.$data.players = apiData.player_data;
+        console.log(apiData);
 
         this.$data.managers = apiData.managers.map(manager => ({
           entry: manager.entry,
@@ -122,8 +123,10 @@ export default defineComponent({
           gw_transfers_cost: manager.gw_transfers_cost,
           picks: manager.picks,
           current_overall_rank: manager.current_overall_rank,
+          current_rank: manager.current_rank,
           live_overall_points: manager.live_overall_points 
         }))
+        console.log([...this.$data.managers.sort((a,b) => a.current_rank - b.current_rank)], "asds");
 
         
         this.$data.gw = apiData.managers[0].gw;
@@ -135,25 +138,22 @@ export default defineComponent({
         this.loading=false;
   },
   computed: {
-    sortedManagers() {
-      if(Object.keys(this.managers).length) {
-        return this.managers.sort((a,b) => (b.live_overall_points - a.live_overall_points));
-      }
-      else {
-        return [];
-      }
+    sortedManagers() {      
+        let managers =  [...apiData.managers.sort((a,b) => a.current_rank - b.current_rank)]; 
+        return managers;
     },
     topPoint() {
       // return 200;
       return this.managers.sort((a,b) => (a.live_overall_points>b.live_overall_points))[0].live_overall_points
     },
     mastermind() {
+
       return this.managers.sort((a,b) => (b.net_transfer_points - a.net_transfer_points));
     }
   },
   data: () => ({
     loading: false,
-    managers: {},
+    managers: [],
     week: {},
     gw: 0
   }),
