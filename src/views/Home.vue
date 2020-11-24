@@ -21,7 +21,7 @@
 
 
     </nav>
-        <header class="bg-white shadow" v-if="$route.meta.title">
+        <header class="bg-white shadow">
       <div class="max-w-screen-xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <h3 class="text-2xl font-bold leading-tight text-gray-900" v-if="week.champion">
           🏆 Manager of the Week: <i> {{ week.champion.mgr_name }} ({{week.champion.live_points}} points) </i>
@@ -51,14 +51,14 @@
           <tr class="border-2 border-gray-200 p-1">
             <th>Manager </th>
             <th>Total Point</th>
-            <th>GW Point</th>
+            <th>GW Point(Net)</th>
             <th>Diffrence from top</th>
             <th>Global Ranking</th>
 
           </tr>
           </thead>
         <tbody>
-          <tr class="" v-for="manager in managers" :key="manager.entry">
+          <tr class="" v-for="manager in sortedManagers" :key="manager.entry">
             <td class="border-2 border-gray-200 p-1">{{ manager.name }}</td>
             <td class="border-2 border-gray-200 p-1">{{  manager.live_overall_points }}</td>
             <td class="border-2 border-gray-200 p-1">{{ manager.gw_points - manager.gw_transfers_cost }}</td>
@@ -88,7 +88,7 @@
         <tbody>
           <tr class="" v-for="manager in managers" :key="manager.entry">
             <td class="border-2 border-gray-200 p-1">{{ manager.name }}</td>
-            <td class="border-2 border-gray-200 p-1">{{  manager.captain.display_name }}</td>0
+            <td class="border-2 border-gray-200 p-1">{{  manager.captain.display_name }}</td>
             <td class="border-2 border-gray-200 p-1">{{ getCaptainScore(manager.captain) }} Point</td>
           </tr>
         </tbody>
@@ -107,13 +107,14 @@ import { defineComponent } from 'vue'
 import axios from "axios";
 import apiData from './../data/api';
 export default defineComponent({
+  name: 'Home',
   mounted() {
     this.loading = true;
 
-      console.log(apiData);
         this.$data.players = apiData.player_data;
 
         this.$data.managers = apiData.managers.map(manager => ({
+          entry: manager.entry,
           captain: this.getCaptain(manager),
           name: manager.mgr_name,
           net_transfer_points: manager.gw_net_transfer_points,
@@ -123,8 +124,10 @@ export default defineComponent({
           gw_transfers_cost: manager.gw_transfers_cost,
           picks: manager.picks,
           current_overall_rank: manager.current_overall_rank,
-          live_overall_points: manager.live_overall_points
-        }));
+          live_overall_points: manager.live_overall_points 
+        }))
+
+        
         this.$data.gw = apiData.managers[0].gw;
         let sortedManager = apiData.managers.sort((a,b) => (b.live_points - a.live_points));
         this.$data.week =  {
@@ -134,12 +137,19 @@ export default defineComponent({
         this.loading=false;
   },
   computed: {
+    sortedManagers() {
+      if(Object.keys(this.managers).length) {
+        return this.managers.sort((a,b) => (b.live_overall_points - a.live_overall_points));
+      }
+      else {
+        return [];
+      }
+    },
     topPoint() {
       // return 200;
       return this.managers.sort((a,b) => (a.live_overall_points>b.live_overall_points))[0].live_overall_points
     },
     mastermind() {
-      console.log(this.managers.sort((a,b) => (b.net_transfer_points - a.net_transfer_points))[0]);
       return this.managers.sort((a,b) => (b.net_transfer_points - a.net_transfer_points));
     }
   },
