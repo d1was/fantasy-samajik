@@ -1,11 +1,157 @@
 <template>
+  <div>
+    <div v-if="loading">Loading Fantasy Data of Samajik Reunion...</div>
+    <div v-else>
+    <nav class="bg-gray-800">
+      <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <div class="">
+              <div class="ml-10 flex items-baseline">
+                  <div
+                    class="px-3 py-2 rounded-md text-sm font-medium text-white bg-gray-900 focus:outline-none focus:text-white focus:bg-gray-700"
+                    >Home of Fantasy Samajik</div>
+              </div>
+            </div>
+          </div>
+
+      
+        </div>
+      </div>
+
+
+    </nav>
+        <header class="bg-white shadow" v-if="$route.meta.title">
+      <div class="max-w-screen-xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <h3 class="text-2xl font-bold leading-tight text-gray-900" v-if="week.champion">
+          🏆 Manager of the Week: {{ week.champion.mgr_name }} ({{week.champion.live_points}} points)
+        </h3>
+        <h3 class="text-2xl font-bold leading-tight text-gray-900" v-if="week.flop">
+          🐔 Flop of the Week: {{ week.flop.mgr_name }} ({{ week.flop.live_points }} Point)
+        </h3>
+      </div>
+    </header>
+
+
   <main>
-    <div class="px-4 py-6 sm:px-0">
-      <div
-        class="border-4 border-dashed border-gray-200 rounded-lg h-96 p-4 text-center text-gray-400"
+    <div class="px-4 py-6 sm:px-0 flex flex-col">
+    <div
+        class="xs:w-full w-full overflow-x-scroll mr-12 border-4 border-dashed border-gray-200 rounded-lg h-96 p-4 text-center text-gray-400"
       >
-        Here goes your content. You can also go the About page.
+      <span>League Standings</span>
+
+      <table class="w-full overscroll-auto mt-4 border-2 border-green-800 border-collapse table-auto text-blue-800" border="" >
+        <thead>
+          <tr class="border-2 border-gray-200 p-1">
+            <th>Manager </th>
+            <th>Total Point</th>
+            <th>GW Point</th>
+            <th>Diffrence from top</th>
+            <th>Global Ranking</th>
+
+          </tr>
+          </thead>
+        <tbody>
+          <tr class="" v-for="manager in managers" :key="manager.entry">
+            <td class="border-2 border-gray-200 p-1">{{ manager.name }}</td>
+            <td class="border-2 border-gray-200 p-1">{{  manager.live_overall_points }}</td>
+            <td class="border-2 border-gray-200 p-1">{{ manager.gw_points - manager.gw_transfers_cost }}</td>
+            <td class="border-2 border-gray-200 p-1">{{  topPoint - manager.live_overall_points }}</td>
+            <td class="border-2 border-gray-200 p-1">{{  manager.current_overall_rank }}</td>
+
+          </tr>
+        </tbody>
+      </table>
+
+
+      </div>
+
+      <div
+        class="xs:w-full overflow-x-scroll mt-4 w-full border-4 border-dashed border-gray-200 rounded-lg h-96 p-4 text-center text-gray-600"
+      >
+      <span>GW{{ gw}} Captain Picks</span>
+
+      <table class="w-full mt-4 border-2 border-green-800 border-collapse table-auto text-blue-800" border="" >
+        <thead>
+          <tr class="border-2 border-gray-200 p-1">
+            <th>Manager </th>
+            <th>Captain</th>
+            <th>GW Point </th>
+          </tr>
+          </thead>
+        <tbody>
+          <tr class="" v-for="manager in managers" :key="manager.entry">
+            <td class="border-2 border-gray-200 p-1">{{ manager.name }}</td>
+            <td class="border-2 border-gray-200 p-1">{{  manager.captain.display_name }}</td>
+            <td class="border-2 border-gray-200 p-1">{{ getCaptainScore(manager.captain) }} Point</td>
+          </tr>
+        </tbody>
+      </table>
+
+
       </div>
     </div>
   </main>
+  </div>
+  </div>
 </template>
+
+<script>
+import { defineComponent } from 'vue'
+import axios from "axios";
+export default defineComponent({
+  mounted() {
+    this.loading = true;
+    axios.get("https://www.premierfantasytools.com/getLeagueManagers2.php?leagueid=337015&load=1")
+      .then(data => {
+        this.$data.players = data.data.player_data;
+
+        this.$data.managers = data.data.managers.map(manager => ({
+          captain: this.getCaptain(manager),
+          name: manager.mgr_name,
+          gw_points: manager.gw_points,
+          live_points: manager.live_points,
+          gw_transfers_cost: manager.gw_transfers_cost,
+          picks: manager.picks,
+          current_overall_rank: manager.current_overall_rank,
+          live_overall_points: manager.live_overall_points
+        }));
+        this.$data.gw = data.data.managers[0].gw;
+        let sortedManager = data.data.managers.sort((a,b) => (b.live_points - a.live_points));
+        console.log(sortedManager);
+        this.$data.week =  {
+          champion: sortedManager[0],
+          flop: sortedManager[sortedManager.length-1] 
+        }
+        console.log(data, this.managers);
+        this.loading=false;
+      }).catch(err => {
+        console.log("Error", err)
+      })
+  },
+  computed: {
+    topPoint() {
+      // return 200;
+      return this.managers.sort((a,b) => (a.live_overall_points>b.live_overall_points))[0].live_overall_points
+    }
+  },
+  data: () => ({
+    loading: false,
+    managers: {},
+    week: {},
+    gw: 0
+  }),
+  methods: {
+    getCaptain(manager) {
+      let captainId = manager.picks.find(pick => pick.is_captain == true);
+      let player = this.players.find(player => (player.id == captainId.element));
+      return player;
+    },
+    getCaptainScore(captain) {
+      let gw = this.gw;
+      let gwkey = "points_gw" + gw;
+      return captain[gwkey]
+    },
+  }
+})
+</script>
