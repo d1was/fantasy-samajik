@@ -99,14 +99,15 @@
 <script>
 import { defineComponent } from 'vue'
 import axios from "axios";
+import apiData from './../data/api';
 export default defineComponent({
   mounted() {
     this.loading = true;
-    axios.get("https://www.premierfantasytools.com/getLeagueManagers2.php?leagueid=337015&load=1")
-      .then(data => {
-        this.$data.players = data.data.player_data;
 
-        this.$data.managers = data.data.managers.map(manager => ({
+
+        this.$data.players = apiData.player_data;
+
+        this.$data.managers = apiData.managers.map(manager => ({
           captain: this.getCaptain(manager),
           name: manager.mgr_name,
           gw_points: manager.gw_points,
@@ -116,18 +117,13 @@ export default defineComponent({
           current_overall_rank: manager.current_overall_rank,
           live_overall_points: manager.live_overall_points
         }));
-        this.$data.gw = data.data.managers[0].gw;
-        let sortedManager = data.data.managers.sort((a,b) => (b.live_points - a.live_points));
-        console.log(sortedManager);
+        this.$data.gw = apiData.managers[0].gw;
+        let sortedManager = apiData.managers.sort((a,b) => (b.live_points - a.live_points));
         this.$data.week =  {
           champion: sortedManager[0],
           flop: sortedManager[sortedManager.length-1] 
         }
-        console.log(data, this.managers);
         this.loading=false;
-      }).catch(err => {
-        console.log("Error", err)
-      })
   },
   computed: {
     topPoint() {
