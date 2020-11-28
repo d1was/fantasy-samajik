@@ -143,7 +143,7 @@ export default defineComponent({
         return managers;
     },
     topPoint() {
-      return apiData.managers.sort((a,b) => (a.live_overall_points - b.live_overall_points))[0].live_overall_points
+      return apiData.managers.sort((a,b) => (b.live_overall_points - a.live_overall_points))[0].live_overall_points
     },
     mastermind() {
 
