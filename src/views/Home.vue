@@ -120,7 +120,7 @@ export default defineComponent({
           transfers: manager.gw_transfers,
           gw_points: manager.gw_points,
           live_points: manager.live_points,
-          gw_transfers_cost: manager.gw_transfers_cost,
+          gw_transfers_cost: manager.gw_transfers_cost, 
           picks: manager.picks,
           current_overall_rank: manager.current_overall_rank,
           current_rank: manager.current_rank,
@@ -143,8 +143,7 @@ export default defineComponent({
         return managers;
     },
     topPoint() {
-      // return 200;
-      return this.managers.sort((a,b) => (a.live_overall_points>b.live_overall_points))[0].live_overall_points
+      return apiData.managers.sort((a,b) => (b.live_overall_points - a.live_overall_points))[0].live_overall_points
     },
     mastermind() {
 
